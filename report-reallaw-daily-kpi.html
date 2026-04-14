@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>광고 퍼포먼스 Daily KPI 대시보드 — 마케팅 분석 허브</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:  #0f2544;
+  --accent:   #d94f2b;
+  --accent2:  #f0a500;
+  --bg:       #f2ede6;
+  --card:     #ffffff;
+  --text:     #1a1a2e;
+  --muted:    #6b7280;
+  --border:   #ddd6cc;
+  --green:    #1a5c3a;
+  --danger:   #c62828;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; }
+
+/* ── TOP HEADER ── */
+.top-header {
+  background: var(--primary);
+  padding: 2rem 2.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+.top-header::after {
+  content: '';
+  position: absolute;
+  right: -80px; top: -80px;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  border: 50px solid rgba(255,255,255,0.04);
+  pointer-events: none;
+}
+.th-left { flex: 1; }
+.header-top-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.logo-box {
+  width: 44px; height: 44px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.logo-box img { width: 100%; height: 100%; object-fit: contain; }
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.brand { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; }
+.brand-name { font-size: 13px; font-weight: 700; color: #fff; }
+.top-header h1 {
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+  border-left: 3px solid var(--accent2);
+  padding-left: 12px;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.meta span {
+  font-size: 11px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.7);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.report-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 10px 18px;
+  border-radius: 8px;
+  letter-spacing: 0.08em;
+  align-self: center;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+/* ── TAB NAV ── */
+.tab-nav {
+  background: var(--primary);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 0 2.5rem;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: 14px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255,255,255,0.45);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  letter-spacing: 0.02em;
+}
+.tab-btn:hover { color: rgba(255,255,255,0.8); }
+.tab-btn.active {
+  color: #fff;
+  border-bottom-color: var(--accent2);
+  font-weight: 700;
+}
+
+/* ── SECTION ── */
+.section { display: none; padding: 2rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+.section.active { display: block; }
+
+/* ── PERIOD BAR ── */
+.period-bar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 12px;
+}
+.period-label { color: var(--muted); }
+.period-val { font-weight: 700; color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+.period-cmp { font-size: 11px; color: var(--muted); }
+
+/* ── KPI GRID ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.kpi-card {
+  background: var(--card);
+  padding: 20px 22px;
+}
+.kpi-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.kpi-val {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.kpi-diff {
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.kpi-diff.up   { color: var(--green); }
+.kpi-diff.down { color: var(--danger); }
+.kpi-diff.flat { color: var(--muted); }
+
+/* ── SUMMARY CARD ── */
+.summary-card {
+  background: var(--primary);
+  border-radius: 10px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 1.5rem;
+}
+.summary-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.summary-body {}
+.summary-title { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 5px; letter-spacing: 0.06em; }
+.summary-text { font-size: 14px; color: #fff; line-height: 1.65; font-weight: 500; }
+
+/* ── ROAS TARGET SELECTOR ── */
+.roas-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.roas-label { font-size: 12px; color: var(--muted); margin-right: 4px; }
+.roas-btn {
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.roas-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.roas-btn.active {
+  background: var(--accent2);
+  border-color: var(--accent2);
+  color: #fff;
+  font-weight: 700;
+}
+.budget-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.budget-label { font-size: 12px; color: var(--muted); }
+input[type=range] {
+  width: 120px;
+  accent-color: var(--accent);
+}
+.budget-val { font-size: 14px; font-weight: 700; color: var(--text); font-family: 'IBM Plex Mono', monospace; min-width: 56px; }
+
+/* ── TARGET KPI GRID ── */
+.target-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.target-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.target-label { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 6px; text-transform: uppercase; }
+.target-val { font-size: 20px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; color: var(--text); line-height: 1; margin-bottom: 4px; }
+.target-sub { font-size: 10px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── FUNNEL ── */
+.funnel-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.funnel-head {
+  background: var(--primary);
+  padding: 12px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.05em;
+}
+.funnel-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 110px 100px;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.funnel-row:last-child { border-bottom: none; }
+.funnel-stage { font-size: 13px; font-weight: 700; color: var(--text); }
+.funnel-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.bar-wrap { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 6px; border-radius: 3px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+.bar-green { background: var(--green); }
+.bar-amber { background: var(--accent2); }
+.bar-red   { background: var(--danger); }
+.funnel-target { font-size: 11px; color: var(--muted); text-align: right; font-family: 'IBM Plex Mono', monospace; }
+.funnel-value  { font-size: 14px; font-weight: 700; color: var(--text); text-align: right; font-family: 'IBM Plex Mono', monospace; }
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.sec-title::before {
+  content: '';
+  width: 3px; height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* ── COMP TABLE ── */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+  margin-bottom: 1.5rem;
+}
+.comp-table thead { background: var(--primary); }
+.comp-table th { padding: 12px 16px; color: rgba(255,255,255,0.7); font-weight: 500; text-align: left; font-size: 11px; letter-spacing: 0.05em; }
+.comp-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); }
+.comp-table tr:last-child td { border-bottom: none; }
+.comp-table tr:hover td { background: var(--bg); }
+.up   { color: var(--green); font-weight: 700; }
+.down { color: var(--danger); font-weight: 700; }
+.hl   { color: var(--accent); font-weight: 700; }
+.mono { font-family: 'IBM Plex Mono', monospace; }
+
+/* ── CMP ROW ── */
+.cmp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.ci {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  border-top: 4px solid var(--border);
+}
+.ci.blue  { border-top-color: #2563eb; }
+.ci.green { border-top-color: var(--green); }
+.ci.red   { border-top-color: var(--danger); }
+.ci-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.05em; }
+.ci-val   { font-size: 22px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; color: var(--text); margin-bottom: 4px; }
+.ci-sub   { font-size: 11px; color: var(--muted); }
+
+/* ── BOX COMPONENTS ── */
+.pt-box, .warn-box, .danger-box, .good-box, .insight-box {
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 1rem;
+  font-size: 13px;
+  line-height: 1.7;
+  border-left: 4px solid;
+}
+.pt-box     { background: #eff6ff; border-left-color: #2563eb; color: #1e3a5f; }
+.warn-box   { background: #fffbeb; border-left-color: var(--accent2); color: #7c4a00; }
+.danger-box { background: #fef2f2; border-left-color: var(--danger); color: #7f1d1d; }
+.good-box   { background: #f0fdf4; border-left-color: var(--green); color: #14532d; }
+.insight-box{ background: #fffbeb; border-left-color: var(--accent2); color: #78350f; }
+
+/* ── INSIGHT GRID ── */
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.insight-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  border-top: 3px solid var(--accent2);
+}
+.insight-num  { font-size: 11px; color: var(--accent2); font-family: 'IBM Plex Mono', monospace; font-weight: 700; margin-bottom: 6px; }
+.insight-title{ font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
+.insight-body { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+/* ── ACTION LIST ── */
+.action-list {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.action-head {
+  background: var(--primary);
+  padding: 12px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.05em;
+}
+.action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.action-item:last-child { border-bottom: none; }
+.action-num {
+  width: 22px; height: 22px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.action-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+.action-tag  { font-size: 10px; color: var(--accent); font-family: 'IBM Plex Mono', monospace; margin-bottom: 3px; }
+
+/* ── NEXT PLAN ── */
+.next-plan {
+  background: var(--primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 1.5rem;
+}
+.next-plan-title { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; margin-bottom: 10px; }
+.next-plan-body  { font-size: 14px; color: #fff; line-height: 1.8; font-weight: 500; }
+
+/* ── DAILY INPUT ── */
+.input-section { margin-bottom: 2rem; }
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.input-group { display: flex; flex-direction: column; gap: 5px; }
+.input-group label { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+.input-group input {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  transition: border-color 0.15s;
+}
+.input-group input:focus { outline: none; border-color: var(--accent); }
+.btn-primary {
+  padding: 10px 24px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.88; }
+
+/* ── DIAGNOSIS ── */
+.diag-list { margin-bottom: 1.5rem; }
+.diag-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.diag-item:last-child { border-bottom: none; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.dot-green { background: var(--green); }
+.dot-amber { background: var(--accent2); }
+.dot-red   { background: var(--danger); }
+
+/* ── LOG TABLE ── */
+.log-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 12px;
+  min-width: 700px;
+}
+.log-table thead { background: var(--primary); }
+.log-table th { padding: 10px 12px; color: rgba(255,255,255,0.7); font-weight: 500; text-align: center; font-size: 10px; letter-spacing: 0.04em; }
+.log-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: center; color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+.log-table tr:last-child td { border-bottom: none; }
+.log-table tr:hover td { background: var(--bg); }
+
+/* ── BACK LINK ── */
+.back-bar {
+  background: var(--primary);
+  padding: 10px 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.back-link {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  transition: color 0.15s;
+}
+.back-link:hover { color: #fff; }
+.hub-url { font-size: 10px; color: rgba(255,255,255,0.3); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── FOOTER ── */
+.site-footer {
+  background: var(--primary);
+  padding: 1.5rem 2.5rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+.footer-meta { font-size: 10px; color: rgba(255,255,255,0.3); font-family: 'IBM Plex Mono', monospace; line-height: 2; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .top-header { padding: 1.5rem 1.2rem; }
+  .section { padding: 1.5rem 1.2rem; }
+  .tab-nav { padding: 0 1.2rem; }
+  .back-bar { padding: 10px 1.2rem; }
+  .funnel-row { grid-template-columns: 100px 1fr 80px; }
+  .funnel-target { display: none; }
+  .insight-grid { grid-template-columns: 1fr; }
+  .cmp-row { grid-template-columns: 1fr; }
+  .report-badge { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── BACK BAR ── -->
+<div class="back-bar">
+  <a class="back-link" href="https://tkseoul77.github.io/real_mkt_analysis_hub/">← 마케팅 분석 허브</a>
+  <span class="hub-url">real_mkt_analysis_hub</span>
+</div>
+
+<!-- ── TOP HEADER ── -->
+<div class="top-header">
+  <div class="th-left">
+    <div class="header-top-row">
+      <div class="logo-box">
+        <img src="data:image/jpeg;base64,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" alt="리얼로펌 로고">
+      </div>
+      <div class="brand-text">
+        <span class="brand">마케팅 분석 허브</span>
+        <span class="brand-name">법무법인 리얼로펌</span>
+      </div>
+    </div>
+    <h1>광고 퍼포먼스<br>Daily KPI 대시보드</h1>
+    <div class="meta">
+      <span>📅 2026. 04 ~</span>
+      <span>📊 퍼포먼스 대시보드</span>
+      <span>🏷 네이버 파워링크·파워콘텐츠</span>
+      <span>📁 법률상담 리드 확보 캠페인</span>
+      <span>🎯 ROAS 최적화 · 퍼널 추적</span>
+    </div>
+  </div>
+  <div class="report-badge">DAILY</div>
+</div>
+
+<!-- ── TAB NAV ── -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('summary', this)">📊 분석 요약</button>
+  <button class="tab-btn" onclick="showTab('data', this)">📈 상세 데이터</button>
+  <button class="tab-btn" onclick="showTab('insight', this)">💡 인사이트·액션</button>
+</nav>
+
+<!-- ══════════════════════════════════════
+     TAB 1 — 분석 요약
+══════════════════════════════════════ -->
+<section class="section active" id="section-summary">
+
+  <!-- 기간 바 -->
+  <div class="period-bar">
+    <span class="period-label">분석 기간</span>
+    <span class="period-val" id="periodVal">2026. 04. 14 ~</span>
+    <span style="flex:1"></span>
+    <span class="period-cmp">광고비 일 예산 <strong>200만원</strong> · 네이버 파워링크·파워콘텐츠</span>
+  </div>
+
+  <!-- ROAS 목표 + 예산 선택 -->
+  <div class="roas-selector">
+    <span class="roas-label">목표 ROAS</span>
+    <button class="roas-btn" id="rb200" onclick="setRoas(200)">200%</button>
+    <button class="roas-btn" id="rb300" onclick="setRoas(300)">300%</button>
+    <button class="roas-btn active" id="rb400" onclick="setRoas(400)">400%</button>
+    <button class="roas-btn" id="rb500" onclick="setRoas(500)">500%<span style="font-size:9px;margin-left:3px;opacity:.7">대표목표</span></button>
+    <div class="budget-wrap">
+      <label class="budget-label">일 광고비</label>
+      <input type="range" min="500000" max="5000000" step="100000" value="2000000" id="budgetSlider" oninput="updateBudget(this.value)">
+      <span class="budget-val" id="budgetDisp">200만원</span>
+    </div>
+  </div>
+
+  <!-- 목표 KPI 카드 -->
+  <div class="sec-title">목표 단계별 KPI <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px">— ROAS 달성을 위한 역산 기준값</span></div>
+  <div class="target-grid" id="targetGrid"></div>
+
+  <!-- 퍼널 구조 -->
+  <div class="sec-title">6단계 퍼널 목표 구조</div>
+  <div class="funnel-wrap">
+    <div class="funnel-head">광고비 → 노출 → 클릭 → CTA → 상담 → 계약 전환 흐름</div>
+    <div id="funnelRows"></div>
+  </div>
+
+  <!-- KPI 입력 -->
+  <div class="sec-title">오늘 실적 입력</div>
+  <div class="input-section">
+    <div class="input-grid">
+      <div class="input-group"><label>날짜</label><input type="date" id="inp-date"></div>
+      <div class="input-group"><label>광고비 (원)</label><input type="number" id="inp-budget" placeholder="2000000"></div>
+      <div class="input-group"><label>노출수</label><input type="number" id="inp-imp" placeholder="5000"></div>
+      <div class="input-group"><label>클릭수</label><input type="number" id="inp-click" placeholder="40"></div>
+      <div class="input-group"><label>CTA 클릭 (상담신청)</label><input type="number" id="inp-cta" placeholder="10"></div>
+      <div class="input-group"><label>상담 연결수</label><input type="number" id="inp-consult" placeholder="8"></div>
+      <div class="input-group"><label>유효상담수</label><input type="number" id="inp-valid" placeholder="5"></div>
+      <div class="input-group"><label>계약수</label><input type="number" id="inp-contract" placeholder="1"></div>
+    </div>
+    <button class="btn-primary" onclick="addLog()">실적 기록 추가</button>
+  </div>
+
+  <!-- 오늘 KPI 결과 -->
+  <div id="todaySection" style="display:none">
+    <div class="sec-title">오늘 실적 KPI</div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="sec-title">문제 구간 진단</div>
+    <div class="diag-list" id="diagList"></div>
+
+    <div class="summary-card" id="summaryCard">
+      <div class="summary-icon">📌</div>
+      <div class="summary-body">
+        <div class="summary-title">오늘의 총평</div>
+        <div class="summary-text" id="summaryText"></div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════
+     TAB 2 — 상세 데이터
+══════════════════════════════════════ -->
+<section class="section" id="section-data">
+
+  <div class="sec-title">ROAS별 단계 KPI 역산 비교표</div>
+  <table class="comp-table" id="roasTable">
+    <thead>
+      <tr>
+        <th>구분</th>
+        <th>ROAS 200%</th>
+        <th>ROAS 300%</th>
+        <th>ROAS 400%</th>
+        <th>ROAS 500% <span style="font-size:9px;opacity:.6">(대표목표)</span></th>
+      </tr>
+    </thead>
+    <tbody id="roasTableBody"></tbody>
+  </table>
+
+  <div class="sec-title">비용 효율 비교</div>
+  <div class="cmp-row">
+    <div class="ci blue">
+      <div class="ci-label">CTA 1건당 적정 광고비</div>
+      <div class="ci-val" id="cmpCta">-</div>
+      <div class="ci-sub">목표: ₩50,000 이하</div>
+    </div>
+    <div class="ci green">
+      <div class="ci-label">계약 1건당 적정 광고비</div>
+      <div class="ci-val" id="cmpContract">-</div>
+      <div class="ci-sub">목표: ₩500,000 이하 (수임료 20%)</div>
+    </div>
+  </div>
+
+  <div class="sec-title">누적 일별 기록</div>
+  <div class="log-wrap">
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th>날짜</th><th>광고비</th><th>클릭</th><th>CTA</th><th>상담</th><th>유효상담</th><th>계약</th>
+          <th>CPC</th><th>CTA율</th><th>계약전환율</th><th>계약당광고비</th><th>ROAS</th>
+        </tr>
+      </thead>
+      <tbody id="logBody"></tbody>
+    </table>
+    <div id="noLog" style="text-align:center;padding:2rem;font-size:13px;color:var(--muted)">
+      아직 입력된 실적이 없습니다. 분석 요약 탭에서 실적을 입력해주세요.
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════
+     TAB 3 — 인사이트·액션
+══════════════════════════════════════ -->
+<section class="section" id="section-insight">
+
+  <div class="insight-box" style="margin-bottom:1.5rem">
+    <strong>핵심 원칙</strong> — 광고 성과 분석은 클릭이 아니라 <strong>계약 기준</strong>으로 판단합니다.
+    광고비 200만원으로 1건의 계약이 나오면 ROAS 125%입니다. 목표 500% 달성을 위해서는 같은 예산으로 4건의 계약이 필요합니다.
+  </div>
+
+  <div class="sec-title">퍼널 단계별 핵심 인사이트</div>
+  <div class="insight-grid">
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 01</div>
+      <div class="insight-title">CTA 전환율이 핵심 병목입니다</div>
+      <div class="insight-body">클릭이 발생해도 CTA(상담신청) 전환율이 20% 미만이면 랜딩페이지 문제입니다. CTA 버튼 위치·문구·신뢰 요소를 최우선으로 점검하세요.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 02</div>
+      <div class="insight-title">퍼스트콜 5분 이내 응대가 계약률을 결정합니다</div>
+      <div class="insight-body">CTA 직후 5분 이내 연락이 이루어지지 않으면 리드 이탈률이 급격히 상승합니다. 상담 연결률 80% 이상 유지가 목표입니다.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 03</div>
+      <div class="insight-title">유효상담 기준을 명확히 정의해야 합니다</div>
+      <div class="insight-body">채무 보유 여부, 소득 수준, 회생 가능성의 3가지 기준을 상담팀 내부에서 통일하지 않으면 유효상담 수치 자체가 의미 없어집니다.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 04</div>
+      <div class="insight-title">키워드별 계약률 분석이 다음 단계입니다</div>
+      <div class="insight-body">CPC가 낮아도 계약으로 이어지지 않는 키워드는 예산 낭비입니다. 키워드 단위 계약률 추적으로 예산을 효율적으로 재배분하세요.</div>
+    </div>
+  </div>
+
+  <div class="sec-title">즉시 실행 액션 아이템</div>
+  <div class="action-list">
+    <div class="action-head">다음 7일 내 반드시 완료해야 할 항목</div>
+    <div class="action-item">
+      <div class="action-num">1</div>
+      <div>
+        <div class="action-tag">[ 랜딩 ]</div>
+        <div class="action-text">CTA 버튼 위치와 문구 A/B 테스트 설계 및 실행 — "무료 상담 신청"과 "지금 바로 문의" 두 버전 비교</div>
+      </div>
+    </div>
+    <div class="action-item">
+      <div class="action-num">2</div>
+      <div>
+        <div class="action-tag">[ 상담팀 ]</div>
+        <div class="action-text">유효상담 판별 기준 체크리스트 제작 및 상담일지 양식 통일 — 데이터 입력 기준 수립</div>
+      </div>
+    </div>
+    <div class="action-item">
+      <div class="action-num">3</div>
+      <div>
+        <div class="action-tag">[ 운영 ]</div>
+        <div class="action-text">퍼스트콜 SLA 기준 수립 — CTA 후 5분 이내 응대 프로세스 구축, 담당자 배정 및 알림 시스템 설정</div>
+      </div>
+    </div>
+    <div class="action-item">
+      <div class="action-num">4</div>
+      <div>
+        <div class="action-tag">[ 데이터 ]</div>
+        <div class="action-text">이 대시보드에 매일 실적 입력 — 초기 2주 데이터가 향후 1년 광고 최적화의 기준이 됩니다</div>
+      </div>
+    </div>
+    <div class="action-item">
+      <div class="action-num">5</div>
+      <div>
+        <div class="action-tag">[ 광고 ]</div>
+        <div class="action-text">네이버 파워링크 키워드별 클릭·CTA·계약 데이터 연결 준비 — 다음 리포트(키워드 계약률 분석) 데이터 기반 구축</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">다음 캠페인 방향</div>
+  <div class="next-plan">
+    <div class="next-plan-title">NEXT STEP — 자동 최적화 시스템 구축 로드맵</div>
+    <div class="next-plan-body">
+      현재 단계는 <strong>데이터 수집 및 퍼널 구조 확립</strong>입니다.<br>
+      2주 후 → 키워드별 계약률 분석으로 저효율 키워드 제거<br>
+      4주 후 → 랜딩페이지별 CTA 전환율 비교 및 최고 성과 랜딩 단일화<br>
+      8주 후 → 상담자별 계약률 비교로 성과 코칭 체계 구축<br>
+      최종 목표 → <strong>광고비 자동 재배분 시스템</strong>으로 ROAS 500% 달성
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <strong>주의사항</strong> — 초기 1~2주는 ROAS가 낮게 나올 수 있습니다. 이 기간의 데이터가 향후 최적화의 기준이 되므로, 숫자가 낮더라도 정확하게 입력하는 것이 중요합니다.
+  </div>
+
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="site-footer">
+  <div class="footer-meta">
+    마케팅 분석 허브 · 법무법인 리얼로펌<br>
+    tkseoul77/real_mkt_analysis_hub · GitHub Pages<br>
+    이앤미디어 운영 · 마케팅팀·경영진 공유용<br>
+    © 2026 Real Lawfirm. All rights reserved.
+  </div>
+</footer>
+
+<script>
+/* ── 상수 ── */
+const CONTRACT_FEE = 2500000;
+const A = { cpc: 50000, ctaRate: 0.25, connectRate: 0.80, validRate: 0.60, contractRate: 0.15 };
+let budget = 2000000, roas = 400, logs = [];
+
+function fmt(n)  { return Math.round(n).toLocaleString('ko-KR'); }
+function pct(n)  { return (n * 100).toFixed(1) + '%'; }
+function won(n)  { return '₩' + fmt(n); }
+
+/* ── KPI 역산 ── */
+function calcKPI(b, r) {
+  const revenue   = b * (r / 100);
+  const contracts = revenue / CONTRACT_FEE;
+  const valid     = contracts / A.contractRate;
+  const consults  = valid / A.validRate;
+  const cta       = consults / A.connectRate;
+  const clicks    = cta / A.ctaRate;
+  return {
+    revenue, contracts, valid, consults, cta, clicks,
+    cpc:         b / clicks,
+    costCta:     b / cta,
+    costConsult: b / consults,
+    costContract:b / contracts,
+  };
+}
+
+/* ── 목표 KPI 카드 렌더 ── */
+function renderTargetGrid() {
+  const k = calcKPI(budget, roas);
+  const cards = [
+    { label: '목표 계약수',      val: k.contracts.toFixed(1), sub: '건 / 일' },
+    { label: '필요 클릭수',      val: Math.round(k.clicks),   sub: 'CPC ' + won(k.cpc) },
+    { label: '필요 CTA',         val: Math.round(k.cta),      sub: '건당 ' + won(k.costCta) },
+    { label: '필요 상담 연결',   val: Math.round(k.consults), sub: '건당 ' + won(k.costConsult) },
+    { label: '필요 유효상담',    val: Math.round(k.valid),    sub: '' },
+    { label: '계약당 광고비',    val: won(k.costContract),    sub: '목표 ' + won(CONTRACT_FEE * 0.2) },
+  ];
+  document.getElementById('targetGrid').innerHTML = cards.map(c =>
+    `<div class="target-card">
+      <div class="target-label">${c.label}</div>
+      <div class="target-val">${c.val}</div>
+      <div class="target-sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+/* ── 퍼널 렌더 ── */
+function renderFunnel() {
+  const k = calcKPI(budget, roas);
+  const stages = [
+    { stage: '광고',     sub: '노출 → 클릭',  target: 'CPC ' + won(k.cpc),    val: Math.round(k.clicks) + '클릭',  pct: 1,    bar: 'bar-green' },
+    { stage: 'CTA 전환', sub: '클릭 → 상담신청', target: '목표 25%',          val: Math.round(k.cta) + '건',       pct: 0.25, bar: 'bar-green' },
+    { stage: '퍼스트콜', sub: 'CTA → 상담연결', target: '목표 80%',           val: Math.round(k.consults) + '건',  pct: 0.8,  bar: 'bar-green' },
+    { stage: '유효상담', sub: '상담 → 유효 분류', target: '목표 60%',         val: Math.round(k.valid) + '건',     pct: 0.6,  bar: 'bar-amber' },
+    { stage: '계약',     sub: '유효상담 → 계약', target: '목표 15%',          val: k.contracts.toFixed(1) + '건',  pct: 0.15, bar: 'bar-red'   },
+  ];
+  document.getElementById('funnelRows').innerHTML = stages.map(s =>
+    `<div class="funnel-row">
+      <div><div class="funnel-stage">${s.stage}</div><div class="funnel-sub">${s.sub}</div></div>
+      <div><div class="bar-wrap"><div class="bar-fill ${s.bar}" style="width:${Math.round(s.pct*100)}%"></div></div></div>
+      <div class="funnel-target">${s.target}</div>
+      <div class="funnel-value">${s.val}</div>
+    </div>`).join('');
+}
+
+/* ── ROAS 비교표 렌더 ── */
+function renderRoasTable() {
+  const rates = [200, 300, 400, 500];
+  const rows = [
+    { label: '목표 매출',       fn: k => won(k.revenue) },
+    { label: '필요 계약수',     fn: k => k.contracts.toFixed(2) + '건' },
+    { label: '필요 클릭수',     fn: k => Math.round(k.clicks) + '회' },
+    { label: 'CPC',             fn: k => won(k.cpc) },
+    { label: '필요 CTA',        fn: k => Math.round(k.cta) + '건' },
+    { label: '필요 상담',       fn: k => Math.round(k.consults) + '건' },
+    { label: '유효상담',        fn: k => Math.round(k.valid) + '건' },
+    { label: '계약당 광고비',   fn: k => won(k.costContract) },
+    { label: 'CTA당 광고비',    fn: k => won(k.costCta) },
+  ];
+  const ks = rates.map(r => calcKPI(2000000, r));
+  document.getElementById('roasTableBody').innerHTML = rows.map(row =>
+    `<tr><td><strong>${row.label}</strong></td>` +
+    ks.map((k, i) => `<td class="mono${i===3?' hl':''}">${row.fn(k)}</td>`).join('') +
+    '</tr>'
+  ).join('');
+
+  const kActive = calcKPI(budget, roas);
+  document.getElementById('cmpCta').textContent = won(kActive.costCta);
+  document.getElementById('cmpContract').textContent = won(kActive.costContract);
+}
+
+/* ── ROAS 선택 ── */
+function setRoas(r) {
+  roas = r;
+  [200, 300, 400, 500].forEach(x => {
+    document.getElementById('rb' + x).classList.toggle('active', x === r);
+  });
+  renderAll();
+}
+function updateBudget(v) {
+  budget = parseInt(v);
+  document.getElementById('budgetDisp').textContent = Math.round(budget / 10000) + '만원';
+  renderAll();
+}
+function renderAll() { renderTargetGrid(); renderFunnel(); renderRoasTable(); }
+
+/* ── 실적 입력 ── */
+function addLog() {
+  const d = {
+    date:     document.getElementById('inp-date').value || new Date().toISOString().slice(0, 10),
+    budget:   parseInt(document.getElementById('inp-budget').value)   || 2000000,
+    imp:      parseInt(document.getElementById('inp-imp').value)      || 0,
+    click:    parseInt(document.getElementById('inp-click').value)    || 0,
+    cta:      parseInt(document.getElementById('inp-cta').value)      || 0,
+    consult:  parseInt(document.getElementById('inp-consult').value)  || 0,
+    valid:    parseInt(document.getElementById('inp-valid').value)    || 0,
+    contract: parseInt(document.getElementById('inp-contract').value) || 0,
+  };
+  if (!d.click) { alert('클릭수를 입력해주세요.'); return; }
+
+  d.cpc          = d.click    ? Math.round(d.budget / d.click)      : 0;
+  d.ctaRate      = d.click    ? d.cta / d.click                     : 0;
+  d.consultRate  = d.cta      ? d.consult / d.cta                   : 0;
+  d.validRate    = d.consult  ? d.valid / d.consult                 : 0;
+  d.contractRate = d.valid    ? d.contract / d.valid                : 0;
+  d.costContract = d.contract ? Math.round(d.budget / d.contract)  : 0;
+  d.roasActual   = d.contract ? Math.round(d.contract * CONTRACT_FEE / d.budget * 100) : 0;
+
+  logs.unshift(d);
+  renderTodayKPI(d);
+  renderLog();
+}
+
+/* ── 오늘 KPI 렌더 ── */
+function renderTodayKPI(d) {
+  const kpis = [
+    { label: '실제 CPC',       val: won(d.cpc),                      ok: d.cpc <= 55000 },
+    { label: 'CTA 전환율',     val: pct(d.ctaRate),                  ok: d.ctaRate >= 0.20 },
+    { label: '상담 연결률',    val: pct(d.consultRate),              ok: d.consultRate >= 0.75 },
+    { label: '유효상담율',     val: pct(d.validRate),                ok: d.validRate >= 0.55 },
+    { label: '계약 전환율',    val: pct(d.contractRate),             ok: d.contractRate >= 0.12 },
+    { label: '실제 ROAS',      val: d.roasActual + '%',              ok: d.roasActual >= 300 },
+  ];
+  document.getElementById('kpiGrid').innerHTML = kpis.map(k =>
+    `<div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val" style="font-size:22px;color:${k.ok ? 'var(--green)' : 'var(--danger)'}">${k.val}</div>
+      <div class="kpi-diff ${k.ok ? 'up' : 'down'}">${k.ok ? '▲ 정상' : '▼ 주의'}</div>
+    </div>`).join('');
+
+  const issues = [];
+  if (d.ctaRate < 0.20)     issues.push({ dot: 'dot-red',   msg: 'CTA 전환율 목표(20%) 미달 → 랜딩페이지 문구·버튼·신뢰 요소 점검 필요' });
+  if (d.consultRate < 0.75) issues.push({ dot: 'dot-red',   msg: '상담 연결률 미달 → 퍼스트콜 응대 지연·누락 점검, SLA 5분 기준 적용' });
+  if (d.validRate < 0.55)   issues.push({ dot: 'dot-amber', msg: '유효상담 비율 낮음 → 광고 키워드 타겟팅 또는 상담 필터 기준 점검' });
+  if (d.contractRate < 0.12)issues.push({ dot: 'dot-amber', msg: '계약 전환율 낮음 → 상담 품질·가격·신뢰도 요소 개선 필요' });
+  if (d.cpc > 60000)        issues.push({ dot: 'dot-amber', msg: 'CPC 과다 → 키워드 입찰가 조정 및 저효율 키워드 제거 검토' });
+  if (!issues.length)       issues.push({ dot: 'dot-green', msg: '모든 주요 지표가 목표 범위 안에 있습니다. 현재 구조를 유지하세요.' });
+
+  document.getElementById('diagList').innerHTML = issues.map(i =>
+    `<div class="diag-item"><div class="dot ${i.dot}"></div><span>${i.msg}</span></div>`).join('');
+
+  const mainIssue = issues[0].dot === 'dot-green'
+    ? `오늘 광고 성과가 전반적으로 양호합니다. ROAS ${d.roasActual}% 달성.`
+    : `광고비 ${won(d.budget)} 집행 · 계약 ${d.contract}건 · ROAS ${d.roasActual}%. ${issues.length}개 구간에서 개선이 필요합니다.`;
+  document.getElementById('summaryText').textContent = mainIssue;
+  document.getElementById('todaySection').style.display = 'block';
+}
+
+/* ── 로그 테이블 ── */
+function renderLog() {
+  document.getElementById('noLog').style.display = logs.length ? 'none' : 'block';
+  document.getElementById('logBody').innerHTML = logs.map(d =>
+    `<tr>
+      <td>${d.date}</td>
+      <td>${won(d.budget)}</td>
+      <td>${d.click}</td>
+      <td>${d.cta}</td>
+      <td>${d.consult}</td>
+      <td>${d.valid}</td>
+      <td>${d.contract}</td>
+      <td>${won(d.cpc)}</td>
+      <td class="${d.ctaRate >= 0.20 ? 'up' : 'down'}">${pct(d.ctaRate)}</td>
+      <td class="${d.contractRate >= 0.12 ? 'up' : 'down'}">${pct(d.contractRate)}</td>
+      <td>${won(d.costContract)}</td>
+      <td class="${d.roasActual >= 300 ? 'up' : d.roasActual >= 200 ? '' : 'down'}">${d.roasActual}%</td>
+    </tr>`).join('');
+}
+
+/* ── 탭 전환 ── */
+function showTab(t, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + t).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── 초기화 ── */
+document.getElementById('inp-date').value = new Date().toISOString().slice(0, 10);
+renderAll();
+</script>
+
+</body>
+</html>
